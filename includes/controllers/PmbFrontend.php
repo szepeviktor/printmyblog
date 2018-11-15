@@ -25,10 +25,16 @@ class PmbFrontend extends BaseController
                 array(),
                 filemtime(PMB_ASSETS_DIR . 'scripts/luxon.min.js')
             );
+            wp_register_script(
+                'html2pdf',
+                PMB_ASSETS_URL . 'scripts/html2pdf.bundle.min.js',
+                array(),
+                filemtime(PMB_ASSETS_DIR . 'scripts/html2pdf.bundle.min.js')
+            );
             wp_enqueue_script(
                 'pmb_print_page',
                 PMB_ASSETS_URL . 'scripts/print_page.js',
-                array('jquery', 'wp-api', 'luxon'),
+                array('jquery', 'wp-api', 'luxon', 'html2pdf'),
                 filemtime(PMB_ASSETS_DIR . 'scripts/print_page.js')
             );
             wp_enqueue_style(

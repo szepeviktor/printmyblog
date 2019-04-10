@@ -33,7 +33,8 @@ class PmbAjax extends BaseController
     public function handleFetchRestApiUrl()
     {
         try {
-            $rest_api_detector = new RestApiDetector(esc_url_raw($_POST['site']));
+            $site = isset($_POST['site']) ? $_POST['site'] : '';
+            $rest_api_detector = new RestApiDetector(esc_url_raw($site));
         } catch (RestApiDetectorError $error) {
                 wp_send_json_error(
                     [

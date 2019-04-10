@@ -43,6 +43,9 @@ function PmbPrintPage(pmb_instance_vars, translations) {
 	this.filters = pmb_instance_vars.filters;
 	this.foogallery = pmb_instance_vars.foogallery;
 	this.isUserLoggedIn = pmb_instance_vars.is_user_logged_in;
+	this.footerSelector = pmb_instance_vars.footer_selector;
+	this.footer = null;
+	this.printed_posts = [];
     /**
      * @function
      */
@@ -53,6 +56,7 @@ function PmbPrintPage(pmb_instance_vars, translations) {
         this.posts_div = jQuery(this.posts_div_selector);
         this.waiting_area = jQuery(this.waiting_area_selector);
         this.print_ready = jQuery(this.print_ready_selector);
+        this.footer = jQuery(this.footerSelector);
 
         var alltaxonomiesCollection = new wp.api.collections.Taxonomies();
         alltaxonomiesCollection.fetch().done((taxonomies) => {
@@ -294,6 +298,7 @@ function PmbPrintPage(pmb_instance_vars, translations) {
 
     this.renderPosts = function() {
         var post = this.ordered_posts.shift();
+        this.printed_posts.push(post);
         if(typeof post === 'object') {
             this.status_span.html( (this.total_posts - this.ordered_posts.length) + '/' + this.total_posts);
             this.addPostToPage(post);
@@ -343,10 +348,38 @@ function PmbPrintPage(pmb_instance_vars, translations) {
                 this.header.html(this.translations.ready);
                 this.print_ready.css('visibility','visible');
                 this.waiting_area.hide();
+                // Print any scripts found used during the posts. But let's just wait a moment, there could be a lot.
+                setTimeout(
+                  () =>{
+                    this.printScripts();
+                  },
+                  this.rendering_wait
+                );
                 this.prettyUpPrintedPage();
             },
             5000
         );
+    };
+
+	/**
+     * Loops through all the posts, and prints their scripts into the footer.
+	 */
+	this.printScripts = function()
+    {
+        for(let i=0; i<this.printed_posts.length; i++){
+            let post = this.printed_posts[i];
+            if(typeof post !== 'object' || post === null){
+                continue;
+            }
+            if(! 'scripts' in post) {
+                // It looks like scripts isn't defined. we can skip this.
+                break;
+            }
+            if(post.scripts !== '') {
+				this.footer.append(post.scripts);
+            }
+
+        }
     };
 
     /**
@@ -387,20 +420,6 @@ function PmbPrintPage(pmb_instance_vars, translations) {
         jQuery('div.wp-video').css({'width': '','min-width':'', 'height': '', 'min-height': ''});
         // unhide the contents.
         jQuery('.pmb-posts').toggle();
-        if(this.foogallery) {
-            jQuery('img[data-src-fg]').each(function(arg1, arg2){
-               let el = jQuery(this);
-               el.attr('src', el.attr('data-src-fg'));
-               let src = el.attr('src');
-            });
-            setTimeout(
-                () =>{
-					this.posts_div.append('<script type="text/javascript" src="/wp-includes/js/masonry.min.js?ver=3.3.2"></script><script type="text/javascript" src="/wp-content/plugins/foogallery/extensions/default-templates/shared/js/foogallery.min.js"></script><link rel="stylesheet" type="text/css" href="/wp-content/plugins/foogallery/extensions/default-templates/shared/css/foogallery.min.css">');
-                },
-                this.rendering_wait
-            );
-
-		}
         jQuery(document).trigger('pmb_wrap_up');
     };
 

@@ -90,5 +90,6 @@
 
     </div>
 </div>
+<div id="pmb-footer"></div>
 
 </body>
